@@ -1,0 +1,10 @@
+{
+  "host": "localhost",
+  "dialect": "postgres",
+  "port": 5432,
+  "username": "postgres",
+  "password": "123456",
+  "database": "ecp_dev",
+  "schema": "public",
+  "synchronize": false
+}

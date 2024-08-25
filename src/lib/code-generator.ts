@@ -10,32 +10,16 @@ import { QueryTypes } from 'sequelize';
 // import { send as createInputTypeSend } from './code-template/code-create-input-type';
 // import { send as updateInputTypeSend } from './code-template/code-update-input-type';
 // import { send as saveInputTypeSend } from './code-template/code-save-input-type';
-import { send as graphqlSend } from './code-template/code-graphql';
-import { send as controllerResolversSend } from './code-template/code-controller-resolvers';
-import { send as codeModelSend } from './code-template/code-model';
+import { send as typeormEntitySend } from './code-template/code-entity-typeorm';
 import fs from 'fs';
 import { promisify } from 'util';
 import bluebird from 'bluebird';
 import inquirer from 'inquirer';
-import { pascalCase } from './utils/helper';
 
 // inquirer.registerPrompt('checkbox-plus', require('inquirer-checkbox-plus-prompt'));
 
-export type JavaPage = {
-  packageName?: string;
-  /**
-   * 自定义配置目录用于分项目包使用
-   */
-  usePath?: string;
-  /**
-   * model 自定义包名 .api
-   */
-  modelPackage?: string;
-};
-
 // #region interface
 export interface ISend {
-  java?: JavaPage;
   columnList: Array<IQueryColumnOut>;
   tableItem: IQueryTableOut;
   keyColumnList: Array<IQueryKeyColumnOut>;
@@ -52,7 +36,10 @@ export interface ISequelizeConfig {
   username: string;
   password: string;
   dialect: any;
-  java?: JavaPage;
+  /**
+   * pg sql
+   */
+  schema?: string;
 }
 
 export interface IQueryTableOut {
@@ -89,19 +76,19 @@ export interface IQueryKeyColumnOut {
   /**
    * 表注释
    */
-  tableComment: string;
+  tablecomment: string;
   /**
    * 表注释
    */
-  refTableComment: string;
+  reftablecomment: string;
   /**
    * 约束更新规则
    */
-  updateRule: string;
+  updaterule: string;
   /**
    * 约束删除规则
    */
-  deleteRule: string;
+  deleterule: string;
 }
 
 export interface IQueryColumnOut {
@@ -122,12 +109,10 @@ export interface IFileObject {
     columnList,
     tableItem,
     keyColumnList,
-    java,
   }: {
     columnList: Array<IQueryColumnOut>;
     tableItem: IQueryTableOut;
     keyColumnList: Array<IQueryKeyColumnOut>;
-    java?: JavaPage;
   }) => Promise<string>;
   /**
    * 自定义文件扩展方法
@@ -177,64 +162,61 @@ const codeTypeArray = [
   // 'gql-react',
   // 'react-antd-list',
   // 'react-antd-item',
-  'graphql',
-  'controllerResolvers',
-  'javaModel',
+  'typeormEntity',
 ];
 
 /**
  * 生成对象
  */
 const allFun = {
-  graphql: {
-    fun: graphqlSend,
-    // path: `./src/main/resources/graphql`,
-    extension: 'gql',
-    path: (tableName: string, config?: ISequelizeConfig) => {
-      console.log(tableName);
-      const upath = (config?.java?.usePath || '').replace(/\./g, `/`);
-      return `.${upath}/src/main/resources/graphql`;
-    },
-  },
-  controllerResolvers: {
-    fun: controllerResolversSend,
-    path: (tableName: string, config?: ISequelizeConfig) => {
-      if (!config?.java?.packageName) {
-        throw new Error('config.java.packageName is null');
-      }
-      console.log(config.java.packageName);
-      console.log(tableName);
-      let pname = config?.java?.packageName?.replace(/\./g, `/`);
-      console.log(pname);
-      const upath = (config?.java?.usePath || '').replace(/\./g, `/`);
-      return `.${upath}/src/main/java/${pname}/resolvers`;
-    },
+  typeormEntity: {
+    fun: typeormEntitySend,
+    /**
+     * 路径
+     */
+    path: `./src/entities`,
+    /**
+     * 前缀
+     */
+    suffix: `entity`,
+    /**
+     * 扩展名 可以为空默认 ts
+     */
+    extension: 'ts',
     fileName: (tableName: string) => {
-      const fileName = pascalCase(tableName) + 'Resolvers';
+      const fileName = tableName.replace(/_/g, '-');
       return fileName;
     },
-    extension: 'java',
   },
-  javaModel: {
-    fun: codeModelSend,
-    path: (tableName: string, config?: ISequelizeConfig) => {
-      if (!config?.java?.packageName) {
-        throw new Error('config.java.packageName is null');
-      }
-      console.log(config.java.packageName);
-      console.log(tableName);
-      let pname = config?.java?.packageName?.replace(/\./g, `/`);
-      console.log(pname);
-      const upath = (config?.java?.usePath || '').replace(/\./g, `/`);
-      const upath2 = (config?.java?.modelPackage || '').replace(/\./g, `/`);
-      return `.${upath}/src/main/java/${pname}${upath2}/model`;
-    },
-    fileName: (tableName: string) => {
-      const fileName = pascalCase(tableName);
-      return fileName;
-    },
-    extension: 'java',
-  },
+  // graphql: {
+  //   fun: graphqlSend,
+  //   // path: `./src/main/resources/graphql`,
+  //   extension: 'gql',
+  //   path: (tableName: string, config?: ISequelizeConfig) => {
+  //     console.log(tableName);
+  //     const upath = (config?.java?.usePath || '').replace(/\./g, `/`);
+  //     return `.${upath}/src/main/resources/graphql`;
+  //   },
+  // },
+  // controllerResolvers: {
+  //   fun: controllerResolversSend,
+  //   path: (tableName: string, config?: ISequelizeConfig) => {
+  //     if (!config?.java?.packageName) {
+  //       throw new Error('config.java.packageName is null');
+  //     }
+  //     console.log(config.java.packageName);
+  //     console.log(tableName);
+  //     let pname = config?.java?.packageName?.replace(/\./g, `/`);
+  //     console.log(pname);
+  //     const upath = (config?.java?.usePath || '').replace(/\./g, `/`);
+  //     return `.${upath}/src/main/java/${pname}/resolvers`;
+  //   },
+  //   fileName: (tableName: string) => {
+  //     const fileName = pascalCase(tableName) + 'Resolvers';
+  //     return fileName;
+  //   },
+  //   extension: 'java',
+  // },
   // sequelizeModel: {
   //   fun: modelSend,
   //   /**
@@ -368,7 +350,7 @@ const envConfig = (env: string): ISequelizeConfig => {
   try {
     const dbConfig = shell.cat(configPath);
     const result = JSON.parse(dbConfig);
-    return get(result, env);
+    return get(result, env, result);
   } catch (error) {
     console.error(
       chalk.white.bgRed.bold(`Error: `) + `\t [${configPath}] not find,must have local umzug!`
@@ -401,17 +383,29 @@ const confirmDBConfig = async (database: string) => {
  */
 const queryTable = async (config: ISequelizeConfig) => {
   const sequelize = getConn(config);
-  const result = await sequelize.query<IQueryTableOut>(
-    `select table_name AS tableName,table_comment AS tableComment,table_type AS tableType
-     from information_schema.tables where table_name <> 'sequelizemeta' 
-     and table_schema=:database order by table_name`,
-    {
-      replacements: {
-        database: config.database,
-      },
-      type: QueryTypes.SELECT,
-    }
-  );
+  const sql = `
+  -- pgsql
+  SELECT 
+    t.table_name AS "tableName",
+    obj_description((quote_ident(t.table_schema) || '.' || quote_ident(t.table_name))::regclass, 'pg_class') AS "tableComment",
+    t.table_type AS "tableType"
+FROM information_schema.tables t
+WHERE t.table_name <> 'sequelizemeta' and t.table_name <> 'migrations'
+  AND t.table_schema = :schema
+ORDER BY t.table_name;
+  `;
+  // const sql = `
+  // -- mysql
+  // select table_name AS tableName,table_comment AS tableComment,table_type AS tableType
+  //    from information_schema.tables where table_name <> 'sequelizemeta'
+  //    and table_schema=:database order by table_name
+  // `;
+  const result = await sequelize.query<IQueryTableOut>(sql, {
+    replacements: {
+      schema: config.schema,
+    },
+    type: QueryTypes.SELECT,
+  });
   const tableList = result.map((p) => ({
     name: `${p.tableName}--${p.tableComment}`,
     value: p,
@@ -441,7 +435,6 @@ const fileSend = async (tables: [IQueryTableOut], types: [string], config: ISequ
           columnList,
           tableItem: p,
           keyColumnList,
-          java: config.java,
         });
         codeStr && (await createFile(fileObj, p.tableName, codeStr, x, config));
       });
@@ -516,7 +509,7 @@ const fileWritePromise = (fullPath: string, txt: string) => {
 
 export const init = async (config: InitInProp) => {
   const db = envConfig(config.configNodeEnv || 'local');
-  await confirmDBConfig(db.database);
+  await confirmDBConfig(db?.database);
   const tableList = await queryTable(db);
   // 选择导出表格
   const tables: any = await askListQuestions(tableList, 'tableName', 'checkbox');
@@ -553,18 +546,35 @@ const queryColumn = async (
   config: ISequelizeConfig,
   name: string
 ): Promise<Array<IQueryColumnOut>> => {
-  const sql = `SELECT table_name as tableName,column_name as columnName,
-COLUMN_COMMENT as columnComment,column_type as columnType,
-DATA_TYPE as dataType, CHARACTER_MAXIMUM_LENGTH as characterMaximumLength,
-is_Nullable as isNullable
- FROM information_schema.columns 
-  WHERE table_schema=:database AND table_name=:name 
-  order by COLUMN_NAME`;
+  //   const sql = `
+  // -- mysql
+  // SELECT table_name as tableName,column_name as columnName,
+  // COLUMN_COMMENT as columnComment,column_type as columnType,
+  // DATA_TYPE as dataType, CHARACTER_MAXIMUM_LENGTH as characterMaximumLength,
+  // is_Nullable as isNullable
+  //  FROM information_schema.columns
+  //   WHERE table_schema=:database AND table_name=:name
+  //   order by COLUMN_NAME`;
+  const sql = `
+  -- pgsql
+  SELECT 
+    c.table_name AS "tableName",
+    c.column_name AS "columnName",
+    col_description(format('%s.%s', c.table_schema, c.table_name)::regclass::oid, ordinal_position) AS "columnComment",
+    c.udt_name AS "columnType",
+    c.data_type AS "dataType",
+    c.character_maximum_length AS "characterMaximumLength",
+    c.is_nullable AS "isNullable"
+FROM information_schema.columns c
+WHERE c.table_schema = :schema 
+  AND c.table_name = :name
+ORDER BY c.column_name;
+  `;
   const sequelize = getConn(config);
 
   const result = await sequelize.query<IQueryColumnOut>(sql, {
     replacements: {
-      database: config.database,
+      schema: config.schema,
       name,
     },
     type: QueryTypes.SELECT,
@@ -572,38 +582,95 @@ is_Nullable as isNullable
   return result || [];
 };
 
+// #region mysql queryKeyColumn
+// /**
+//  * mysql
+//  * @param config
+//  * @param name
+//  * @returns
+//  */
+// const queryKeyColumn = async (
+//   config: ISequelizeConfig,
+//   name: string
+// ): Promise<Array<IQueryKeyColumnOut>> => {
+//   const sql = `SELECT DISTINCT C.TABLE_SCHEMA as tableSchema,
+//            C.REFERENCED_TABLE_NAME as referencedTableName,
+//            C.REFERENCED_COLUMN_NAME as referencedColumnName,
+//            C.TABLE_NAME as tableName,
+//            C.COLUMN_NAME as columnName,
+//            C.CONSTRAINT_NAME as constraintName,
+//            T.TABLE_COMMENT as tableComment,
+// 					 refT.TABLE_COMMENT as refTableComment,
+//            R.UPDATE_RULE as updateRule,
+//            R.DELETE_RULE as deleteRule
+//       FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE C
+//       JOIN INFORMATION_SCHEMA. TABLES T
+//         ON T.TABLE_NAME = C.TABLE_NAME
+//       JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS R
+//         ON R.TABLE_NAME = C.TABLE_NAME
+//        AND R.CONSTRAINT_NAME = C.CONSTRAINT_NAME
+//        AND R.REFERENCED_TABLE_NAME = C.REFERENCED_TABLE_NAME
+// 			join INFORMATION_SCHEMA. TABLES refT
+// 				on reft.TABLE_NAME = C.REFERENCED_TABLE_NAME
+//       WHERE C.REFERENCED_TABLE_NAME IS NOT NULL
+// 				AND (C.REFERENCED_TABLE_NAME = :tableName or C.TABLE_NAME = :tableName)
+//         AND C.TABLE_SCHEMA = :database
+//         -- group by C.CONSTRAINT_NAME
+//         order by C.CONSTRAINT_NAME`;
+//   const sequelize = getConn(config);
+//   const result = await sequelize.query<IQueryKeyColumnOut>(sql, {
+//     replacements: {
+//       database: config.database,
+//       tableName: name,
+//     },
+//     type: QueryTypes.SELECT,
+//   });
+//   return result || [];
+// };
+// #endregion
+
+/**
+ * pgsql
+ * @param config
+ * @param name
+ * @returns
+ */
 const queryKeyColumn = async (
   config: ISequelizeConfig,
   name: string
 ): Promise<Array<IQueryKeyColumnOut>> => {
-  const sql = `SELECT DISTINCT C.TABLE_SCHEMA as tableSchema,
-           C.REFERENCED_TABLE_NAME as referencedTableName,
-           C.REFERENCED_COLUMN_NAME as referencedColumnName,
-           C.TABLE_NAME as tableName,
-           C.COLUMN_NAME as columnName,
-           C.CONSTRAINT_NAME as constraintName,
-           T.TABLE_COMMENT as tableComment,
-					 refT.TABLE_COMMENT as refTableComment,
-           R.UPDATE_RULE as updateRule,
-           R.DELETE_RULE as deleteRule
-      FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE C
-      JOIN INFORMATION_SCHEMA. TABLES T
-        ON T.TABLE_NAME = C.TABLE_NAME
-      JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS R
-        ON R.TABLE_NAME = C.TABLE_NAME
-       AND R.CONSTRAINT_NAME = C.CONSTRAINT_NAME
-       AND R.REFERENCED_TABLE_NAME = C.REFERENCED_TABLE_NAME
-			join INFORMATION_SCHEMA. TABLES refT
-				on reft.TABLE_NAME = C.REFERENCED_TABLE_NAME 
-      WHERE C.REFERENCED_TABLE_NAME IS NOT NULL
-				AND (C.REFERENCED_TABLE_NAME = :tableName or C.TABLE_NAME = :tableName)
-        AND C.TABLE_SCHEMA = :database
-        -- group by C.CONSTRAINT_NAME 
-        order by C.CONSTRAINT_NAME`;
+  const sql = `SELECT DISTINCT
+    kcu.constraint_schema AS "tableSchema",
+    kcu.table_name AS "tableName",
+    kcu.column_name AS "columnName",
+    kcu.constraint_name AS "constraintName",
+    ccu.table_name AS "referencedTableName",
+    ccu.column_name AS "referencedColumnName",
+    (SELECT obj_description(relfilenode, 'pg_class')
+     FROM pg_class 
+     WHERE relname = kcu.table_name 
+       AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = kcu.constraint_schema)) AS tableComment,
+    (SELECT obj_description(relfilenode, 'pg_class')
+     FROM pg_class 
+     WHERE relname = ccu.table_name 
+       AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = ccu.constraint_schema)) AS refTableComment,
+    rc.update_rule AS updateRule,
+    rc.delete_rule AS deleteRule
+FROM information_schema.key_column_usage AS kcu
+JOIN information_schema.constraint_column_usage AS ccu
+    ON kcu.constraint_name = ccu.constraint_name
+    AND kcu.constraint_schema = ccu.constraint_schema
+JOIN information_schema.referential_constraints AS rc
+    ON kcu.constraint_name = rc.constraint_name
+    AND kcu.constraint_schema = rc.constraint_schema
+WHERE kcu.constraint_schema = :schema
+  AND (ccu.table_name = :tableName OR kcu.table_name = :tableName)
+ORDER BY kcu.constraint_name;
+`;
   const sequelize = getConn(config);
   const result = await sequelize.query<IQueryKeyColumnOut>(sql, {
     replacements: {
-      database: config.database,
+      schema: config.schema,
       tableName: name,
     },
     type: QueryTypes.SELECT,

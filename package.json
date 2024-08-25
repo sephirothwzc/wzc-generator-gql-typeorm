@@ -40,6 +40,8 @@
     "lodash": "^4.17.21",
     "minimist": "^1.2.5",
     "mysql2": "^2.3.0",
+    "pg": "^8.12.0",
+    "pg-hstore": "^2.3.4",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.6.5",
     "sequelize-typescript": "^2.1.1",

@@ -1,4 +1,4 @@
-import { camelCase, upperFirst } from 'lodash';
+import { camelCase, replace, upperFirst } from 'lodash';
 
 /**
  * 帕斯卡命名
@@ -29,4 +29,13 @@ export const camelCaseNumber = (name: string) => {
     })
     .join('');
   return newName;
+};
+
+/**
+ * 下划线变中横线命名用
+ * @param name
+ * @returns
+ */
+export const tableNameToFileName = (name: string) => {
+  return replace(name, /\_/g, `-`);
 };
