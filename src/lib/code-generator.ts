@@ -3,8 +3,10 @@ import { get, isString } from 'lodash';
 import shell from 'shelljs';
 import { Sequelize } from 'sequelize-typescript';
 import { QueryTypes } from 'sequelize';
+import { send as nestResolverSend } from './code-template/nest-resolver';
 import { send as nestServiceSend } from './code-template/nest-service';
 import { send as typeormEntitySend } from './code-template/code-entity-typeorm';
+import { send as nestDtoInputSend } from './code-template/nest-dto-input';
 import fs from 'fs';
 import { promisify } from 'util';
 import bluebird from 'bluebird';
@@ -142,7 +144,7 @@ const getConn = (config: ISequelizeConfig): Sequelize => {
 /**
  * 生成类型
  */
-const codeTypeArray = ['typeormEntity', 'nestService'];
+const codeTypeArray = ['typeormEntity', 'nestService', 'nestResolver', 'nestDtoInput'];
 
 /**
  * 生成对象
@@ -180,6 +182,50 @@ const allFun = {
      * 前缀
      */
     suffix: `service`,
+    /**
+     * 扩展名 可以为空默认 ts
+     */
+    extension: 'ts',
+    fileName: (tableName: string) => {
+      const fileName = tableName.replace(/_/g, '-');
+      return fileName;
+    },
+  },
+  nestResolver: {
+    fun: nestResolverSend,
+    /**
+     * 路径
+     */
+    path: (tableName: string) => {
+      const upath = tableName.replace(/_/g, `-`);
+      return `./src/${upath}`;
+    },
+    /**
+     * 前缀
+     */
+    suffix: `resolver`,
+    /**
+     * 扩展名 可以为空默认 ts
+     */
+    extension: 'ts',
+    fileName: (tableName: string) => {
+      const fileName = tableName.replace(/_/g, '-');
+      return fileName;
+    },
+  },
+  nestDtoInput: {
+    fun: nestDtoInputSend,
+    /**
+     * 路径
+     */
+    path: (tableName: string) => {
+      const upath = tableName.replace(/_/g, `-`);
+      return `./src/${upath}/dto`;
+    },
+    /**
+     * 前缀
+     */
+    suffix: `input`,
     /**
      * 扩展名 可以为空默认 ts
      */
