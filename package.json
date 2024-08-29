@@ -1,8 +1,11 @@
 {
-  "name": "wzc-generator-gql-java",
-  "version": "1.0.67",
+  "name": "wzc-generator-gql-typeorm",
+  "version": "1.0.0",
   "description": "代码生成器",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "bin": {
+    "wzc-generator-gql-typeorm": "./dist/index.js"
+  },
   "scripts": {
     "commit": "yarn build && git add . && git-cz && git push",
     "changelog": "conventional-changelog -p angular -i CHANGELO G.md -s -r 0",

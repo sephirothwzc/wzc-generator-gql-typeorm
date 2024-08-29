@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { init, InitInProp } from './lib/code-generator';
 import minimist from 'minimist';
 import { exit } from 'process';
