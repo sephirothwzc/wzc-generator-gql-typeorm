@@ -72,7 +72,7 @@ const findResolveField = (
       importList.add(`
 import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(
         p.tableName
-      )}.entity`);
+      )}.entity'`);
       importList.add(
         `import { ${pascalCase(p.tableName)}Service } from '../${tableNameToFileName(
           p.tableName
@@ -91,7 +91,7 @@ import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(
       importList.add(`
 import { ${pascalCase(p.referencedTableName)} } from '../entities/${tableNameToFileName(
         p.referencedTableName
-      )}.entity`);
+      )}.entity'`);
       importList.add(
         `import { ${pascalCase(p.referencedTableName)}Service } from '../${tableNameToFileName(
           p.referencedTableName
