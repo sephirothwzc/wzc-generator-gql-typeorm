@@ -40,9 +40,12 @@ const modelTemplate = ({
     servicesInject = ', ' + servicesInject;
   }
   return `
-import { Args, Int, Mutation, Query, Resolver${importGqlStr} } from '@nestjs/graphql';
+import { Args, Info, Int, Mutation, Query, Resolver${importGqlStr} } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
+import { UseGuards } from '@nestjs/common';
 
+import { ${className} } from '../entities/${tableNameToFileName(tableName)}.entity';
+import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { QueryBuilderOptionsInput } from '../utils/resolver-input';
 import {
   Create${className}Input,
@@ -61,38 +64,54 @@ export class ${className}Resolver {
     tableName
   )}Service: ${className}Service${servicesInject}) {}
 
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object, { description: '新增用户' })
-  async create${className}(@Args('create${className}Input') create${className}Input: Create${className}Input) {
-    return this.${camelCase(tableName)}Service.create(create${className}Input);
+  async create${className}(@Args('create${className}Input') create${className}Input: Create${className}Input,
+  @CurrentUser() user: JwtAuthEntity) {
+    return this.${camelCase(tableName)}Service.create(create${className}Input, user);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Query(() => [${className}Object], { description: '查询用户' })
   async find${className}(
-    @Args('queryBuilderOptions') queryBuilderOptions: QueryBuilderOptionsInput,
+    @Args('queryBuilderOptions') queryBuilderOptions: QueryBuilderOptionsInput<${className}>,
+    @CurrentUser() user: JwtAuthEntity
   ) {
-    return this.${camelCase(tableName)}Service.findEntity(queryBuilderOptions);
+    return this.${camelCase(tableName)}Service.findEntity(queryBuilderOptions, user);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Query(() => Int, { description: '获取行数' })
-  async find${className}Count(@Args('where', { type: () => GraphQLJSON }) where: JSON) {
-    return this.${camelCase(tableName)}Service.count(where as any);
+  async find${className}Count(
+    @Args('where', { type: () => GraphQLJSON }) where: FindOptionsWhere<${className}>[] | FindOptionsWhere<${className}>,
+    @CurrentUser() user: JwtAuthEntity) {
+    return this.${camelCase(tableName)}Service.count(where, user);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Query(() => ${className}Object, { description: '根据id获取' })
-  async find${className}ByPk(@Args('id', { type: () => String }) id: string) {
-    return this.${camelCase(tableName)}Service.findByPk(id);
+  async find${className}ByPk(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: JwtAuthEntity) {
+    return this.${camelCase(tableName)}Service.findByPk(id, user);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object)
-  async update${className}(@Args('update${className}Input') update${className}Input: Update${className}Input) {
+  async update${className}(
+    @Args('update${className}Input') update${className}Input: Update${className}Input,
+    @CurrentUser() user: JwtAuthEntity) {
     return this.${camelCase(
       tableName
-    )}Service.update(update${className}Input.id, update${className}Input);
+    )}Service.update(update${className}Input.id, update${className}Input, user);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object)
-  async remove${className}(@Args('id', { type: () => String }) id: string) {
-    return this.${camelCase(tableName)}Service.remove(id);
+  async remove${className}(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: JwtAuthEntity) {
+    return this.${camelCase(tableName)}Service.remove(id, user);
   }
   ${listOneToMany}${listManyToOne}
 }
@@ -129,17 +148,29 @@ import { ${pascalCase(p.tableName)}Object } from '../${tableNameToFileName(
           p.tableName
         )}/${tableNameToFileName(p.tableName)}.service';`
       );
+      importList.add(`
+import { merge } from 'lodash';
+import { FindOptionsWhere } from 'typeorm';
+`);
+
       return `
   @ResolveField(() => [${pascalCase(p.tableName)}Object], { nullable: true })
   async ${camelCase(p.tableName)}(@Parent() ${camelCase(p.referencedTableName)}Object: ${pascalCase(
         p.referencedTableName
-      )}Object) {
-    const { id } = ${camelCase(p.referencedTableName)}Object;
-    return this.${camelCase(p.tableName)}Service.findEntity({
-      where: {
-        ${camelCase(p.columnName)}: id,
-      } as any,
+      )}Object,
+      @Info() { info }, // Type of the object that implements Character
+      @Args('param', {
+        type: () => GraphQLJSON,
+        nullable: true,
+      })
+      param: QueryBuilderOptionsInput<${pascalCase(p.tableName)}>) {
+    const { id } =  ${camelCase(p.referencedTableName)}Object;
+    const queryBuilderOptions = merge({}, param, {
+      where: { ${camelCase(p.columnName)}: id } as
+        | FindOptionsWhere<${pascalCase(p.tableName)}>[]
+        | FindOptionsWhere<${pascalCase(p.tableName)}>,
     });
+    return this.${camelCase(p.tableName)}Service.findEntity(queryBuilderOptions);
   }`;
     })
     .join(``);
