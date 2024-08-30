@@ -154,6 +154,9 @@ import { ${pascalCase(p.tableName)}Object } from '../${tableNameToFileName(
       importList.add(`
 import { merge } from 'lodash';
 `);
+      importList.add(`
+import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(p.tableName)}.entity';
+`);
 
       return `
   @ResolveField(() => [${pascalCase(p.tableName)}Object], { nullable: true })
