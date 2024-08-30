@@ -43,9 +43,12 @@ const modelTemplate = ({
 import { Args, Info, Int, Mutation, Query, Resolver${importGqlStr} } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
 import { UseGuards } from '@nestjs/common';
+import { FindOptionsWhere } from 'typeorm';
 
+import { CurrentUser } from '../auth/dto/current-user';
 import { ${className} } from '../entities/${tableNameToFileName(tableName)}.entity';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
+import { JwtAuthEntity } from '../auth/jwt-auth-entity';
 import { QueryBuilderOptionsInput } from '../utils/resolver-input';
 import {
   Create${className}Input,
@@ -150,7 +153,6 @@ import { ${pascalCase(p.tableName)}Object } from '../${tableNameToFileName(
       );
       importList.add(`
 import { merge } from 'lodash';
-import { FindOptionsWhere } from 'typeorm';
 `);
 
       return `
