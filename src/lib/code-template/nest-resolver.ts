@@ -86,9 +86,9 @@ export class ${className}Resolver {
   @UseGuards(GqlAuthGuard)
   @Query(() => Int, { description: '获取行数' })
   async find${className}Count(
-    @Args('where', { type: () => GraphQLJSON }) where: FindOptionsWhere<${className}>[] | FindOptionsWhere<${className}>,
+    @Args('queryBuilderOptions') queryBuilderOptions: QueryBuilderOptionsInput<${className}>,
     @CurrentUser() user: JwtAuthEntity) {
-    return this.${camelCase(tableName)}Service.count(where, user);
+    return this.${camelCase(tableName)}Service.count(queryBuilderOptions.where, user);
   }
 
   @UseGuards(GqlAuthGuard)
