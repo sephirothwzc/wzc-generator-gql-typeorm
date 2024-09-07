@@ -110,7 +110,7 @@ export class ${className}Resolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => ${className}Object)
+  @Mutation(() => Int)
   async remove${className}(
     @Args('id', { type: () => String }) id: string,
     @CurrentUser() user: JwtAuthEntity) {
