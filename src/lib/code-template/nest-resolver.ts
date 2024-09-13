@@ -68,13 +68,6 @@ export class ${className}Resolver {
   )}Service: ${className}Service${servicesInject}) {}
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => ${className}Object, { description: '新增用户' })
-  async create${className}(@Args('create${className}Input') create${className}Input: Create${className}Input,
-  @CurrentUser() user: JwtAuthEntity) {
-    return this.${camelCase(tableName)}Service.create(create${className}Input, user);
-  }
-
-  @UseGuards(GqlAuthGuard)
   @Query(() => [${className}Object], { description: '查询用户' })
   async find${className}(
     @Args('queryBuilderOptions') queryBuilderOptions: QueryBuilderOptionsInput<${className}>,
@@ -97,6 +90,22 @@ export class ${className}Resolver {
     @Args('id', { type: () => String }) id: string,
     @CurrentUser() user: JwtAuthEntity) {
     return this.${camelCase(tableName)}Service.findByPk(id, user);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => ${className}Object, { description: '根据id保存用户' })
+  async save${className}(
+    @Args('update${className}Input') update${className}Input: Create${className}Input,
+    @CurrentUser() user: JwtAuthEntity,
+  ) {
+    return this.${camelCase(tableName)}Service.save(update${className}Input, user);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => ${className}Object, { description: '新增用户' })
+  async create${className}(@Args('create${className}Input') create${className}Input: Create${className}Input,
+  @CurrentUser() user: JwtAuthEntity) {
+    return this.${camelCase(tableName)}Service.create(create${className}Input, user);
   }
 
   @UseGuards(GqlAuthGuard)
