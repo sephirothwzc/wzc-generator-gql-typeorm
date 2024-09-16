@@ -95,7 +95,7 @@ export class ${className}Resolver {
   @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object, { description: '根据id保存用户' })
   async save${className}(
-    @Args('update${className}Input') update${className}Input: Create${className}Input,
+    @Args('update${className}Input') update${className}Input: Update${className}Input,
     @CurrentUser() user: JwtAuthEntity,
   ) {
     return this.${camelCase(tableName)}Service.save(update${className}Input, user);
