@@ -52,6 +52,7 @@ import { JwtAuthEntity } from '../auth/jwt-auth-entity';
 import { QueryBuilderOptionsInput } from '../utils/resolver-input';
 import {
   Create${className}Input,
+  Save${className}Input,
   Update${className}Input,
 } from './dto/${tableNameToFileName(tableName)}.input';
 import { ${className}Object } from './model/${tableNameToFileName(tableName)}.object';
