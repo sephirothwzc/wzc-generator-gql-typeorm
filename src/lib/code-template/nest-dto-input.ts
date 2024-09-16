@@ -149,6 +149,14 @@ export class Update${className}Input extends PartialType(
   @Field(() => String)
   id: string;
 }
+
+@InputType({ description: '保存${tableComment}' })
+export class Save${className}Input extends PartialType(
+  Create${className}Input,
+) {
+  @Field(() => String, { nullable: true, description: 'id' })
+  id: string;
+}
 `;
 };
 
