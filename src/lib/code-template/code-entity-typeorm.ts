@@ -80,7 +80,7 @@ const findForeignKey = (
       const propertyName = camelCaseNumber(p.columnName);
       const comment = p.columnComment || p.columnName;
       // 判断长度 增加长度限制
-      let maxValid = undefined;
+      let maxValid = '';
       if (modelPropertyType === 'string') {
         maxValid = `
         length:${p.characterMaximumLength || 50},`;
