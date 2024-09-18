@@ -220,7 +220,7 @@ import { ${pascalCase(p.referencedTableName)}Object } from '../${tableNameToFile
       )}Object) {
     const { ${camelCase(p.columnName)} } = ${camelCase(p.tableName)}Object;
     if(!${camelCase(p.columnName)}){
-      return {};  
+      return undefined;  
     }
     return this.${camelCase(p.referencedTableName)}Service.findByPk(${camelCase(p.columnName)});
   }`;
