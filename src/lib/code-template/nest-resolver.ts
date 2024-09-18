@@ -219,6 +219,9 @@ import { ${pascalCase(p.referencedTableName)}Object } from '../${tableNameToFile
         p.tableName
       )}Object) {
     const { ${camelCase(p.columnName)} } = ${camelCase(p.tableName)}Object;
+    if(!${camelCase(p.columnName)}){
+      return {};  
+    }
     return this.${camelCase(p.referencedTableName)}Service.findByPk(${camelCase(p.columnName)});
   }`;
     })
