@@ -117,7 +117,7 @@ import { ${pascalCase(p.tableName)} } from './${tableNameToFileName(p.tableName)
    */
   @OneToMany(() => ${pascalCase(p.tableName)}, (${camelCase(p.tableName)}) => ${camelCase(
         p.tableName
-      )}.${p.referencedTableName})
+      )}.${camelCase(p.referencedTableName)})
   ${camelCase(p.tableName)}: Array<${pascalCase(p.tableName)}>;`;
     })
     .join(``);
