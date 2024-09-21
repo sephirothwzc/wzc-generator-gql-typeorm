@@ -72,6 +72,7 @@ const findGqlTypeTxt = (p: IQueryColumnOut): string => {
     case 'datetime':
       return 'Date';
     case 'int':
+    case 'integer':
       return 'Int';
     case 'decimal':
     case 'double':

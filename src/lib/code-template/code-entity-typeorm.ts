@@ -44,6 +44,7 @@ const findTypeTxt = (p: IQueryColumnOut): string => {
     case 'datetime':
       return 'Date';
     case 'int':
+    case 'integer':
       return 'number';
     case 'decimal':
     case 'double':
