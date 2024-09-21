@@ -10,6 +10,8 @@ const importList = new Set<string>();
  */
 const typeormImport = new Set<string>();
 
+const gqlTypeImport = new Set<string>();
+
 /**
  * 不生成的列
  */
@@ -43,6 +45,7 @@ const findTypeTxt = (p: IQueryColumnOut): string => {
     case 'datetime':
       return 'Date';
     case 'int':
+    case 'integer':
       return 'number';
     case 'decimal':
     case 'double':
@@ -73,6 +76,7 @@ const findGqlTypeTxt = (p: IQueryColumnOut): string => {
       return 'Date';
     case 'int':
     case 'integer':
+      gqlTypeImport.add(',Int ');
       return 'Int';
     case 'decimal':
     case 'double':
@@ -132,8 +136,9 @@ const modelTemplate = ({
   columns: string;
   listCreateColumns: string;
 }) => {
+  const gqlTypeString = Array.from(gqlTypeImport).join('');
   return `
-import { Field, InputType, PartialType } from '@nestjs/graphql';
+import { Field, InputType, PartialType${gqlTypeString} } from '@nestjs/graphql';
 
 /**
  * ${tableComment}
