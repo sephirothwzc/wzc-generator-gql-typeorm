@@ -1,6 +1,6 @@
 {
   "name": "wzc-generator-gql-typeorm",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "代码生成器",
   "main": "dist/index.js",
   "bin": {

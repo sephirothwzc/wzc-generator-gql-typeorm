@@ -76,7 +76,7 @@ const findGqlTypeTxt = (p: IQueryColumnOut): string => {
       return 'Date';
     case 'int':
     case 'integer':
-      gqlTypeImport.add(',Int ');
+      gqlTypeImport.add(', Int ');
       return 'Int';
     case 'decimal':
     case 'double':
