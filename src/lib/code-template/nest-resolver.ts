@@ -49,7 +49,7 @@ import { CurrentUser } from '../auth/dto/current-user';
 import { ${className} } from '../entities/${tableNameToFileName(tableName)}.entity';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { JwtAuthEntity } from '../auth/jwt-auth-entity';
-import { QueryBuilderOptionsInput } from '../utils/resolver-input';
+import { QueryBuilderOptionsInput,  QueryOptionsInput } from '../utils/resolver-input';
 import {
   Create${className}Input,
   Save${className}Input,
@@ -68,6 +68,7 @@ export class ${className}Resolver {
     tableName
   )}Service: ${className}Service${servicesInject}) {}
 
+  // #region find
   @UseGuards(GqlAuthGuard)
   @Query(() => [${className}Object], { description: '查询用户' })
   async find${className}(
@@ -92,7 +93,31 @@ export class ${className}Resolver {
     @CurrentUser() user: JwtAuthEntity) {
     return this.${camelCase(tableName)}Service.findByPk(id, user);
   }
+  // #endregion
 
+  // #region queryBuilder
+  @UseGuards(GqlAuthGuard)
+  @Query(() => [UserRoleObject], { description: 'queryBuilder 查询' })
+  async queryBuilderUserRole(
+    @Args('queryBuilderOptions', { type: () => QueryOptionsInput<UserRole> })
+    queryBuilderOptions: QueryOptionsInput<UserRole>,
+    @CurrentUser() user: JwtAuthEntity,
+  ) {
+    return this.userRoleService.queryBuilderEntity(queryBuilderOptions, user);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Query(() => Int, { description: 'queryBuilder 查询 total' })
+  async queryBuilderCountUserRole(
+    @Args('queryBuilderOptions', { type: () => QueryOptionsInput<UserRole> })
+    queryBuilderOptions: QueryOptionsInput<UserRole>,
+    @CurrentUser() user: JwtAuthEntity,
+  ) {
+    return this.userRoleService.queryBuilderCount(queryBuilderOptions, user);
+  }
+  // #endregion
+
+  // #region mutation
   @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object, { description: '根据id保存用户' })
   async save${className}(
@@ -126,7 +151,11 @@ export class ${className}Resolver {
     @CurrentUser() user: JwtAuthEntity) {
     return this.${camelCase(tableName)}Service.remove(id, user);
   }
+  // #endregion
+
+  // #region ResolveField
   ${listOneToMany}${listManyToOne}
+  // #endregion
 }
 `;
 };
