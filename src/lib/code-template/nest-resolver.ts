@@ -97,23 +97,23 @@ export class ${className}Resolver {
 
   // #region queryBuilder
   @UseGuards(GqlAuthGuard)
-  @Query(() => [UserRoleObject], { description: 'queryBuilder 查询' })
-  async queryBuilderUserRole(
-    @Args('queryBuilderOptions', { type: () => QueryOptionsInput<UserRole> })
-    queryBuilderOptions: QueryOptionsInput<UserRole>,
+  @Query(() => [${className}Object], { description: 'queryBuilder 查询' })
+  async queryBuilder${className}(
+    @Args('queryBuilderOptions', { type: () => QueryOptionsInput<${className}> })
+    queryBuilderOptions: QueryOptionsInput<${className}>,
     @CurrentUser() user: JwtAuthEntity,
   ) {
-    return this.userRoleService.queryBuilderEntity(queryBuilderOptions, user);
+    return this.${camelCase(tableName)}Service.queryBuilderEntity(queryBuilderOptions, user);
   }
 
   @UseGuards(GqlAuthGuard)
   @Query(() => Int, { description: 'queryBuilder 查询 total' })
-  async queryBuilderCountUserRole(
-    @Args('queryBuilderOptions', { type: () => QueryOptionsInput<UserRole> })
-    queryBuilderOptions: QueryOptionsInput<UserRole>,
+  async queryBuilderCount${className}(
+    @Args('queryBuilderOptions', { type: () => QueryOptionsInput<${className}> })
+    queryBuilderOptions: QueryOptionsInput<${className}>,
     @CurrentUser() user: JwtAuthEntity,
   ) {
-    return this.userRoleService.queryBuilderCount(queryBuilderOptions, user);
+    return this.${camelCase(tableName)}Service.queryBuilderCount(queryBuilderOptions, user);
   }
   // #endregion
 
