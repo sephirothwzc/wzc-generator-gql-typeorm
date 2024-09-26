@@ -1,6 +1,6 @@
 {
   "name": "wzc-generator-gql-typeorm",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "代码生成器",
   "main": "dist/index.js",
   "bin": {
@@ -39,7 +39,6 @@
   "dependencies": {
     "bluebird": "^3.7.2",
     "chalk": "^4.1.2",
-    "config": "^3.3.12",
     "dotenv": "^16.4.5",
     "figlet": "^1.5.2",
     "inquirer": "8.2.5",

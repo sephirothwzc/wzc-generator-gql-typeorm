@@ -13,9 +13,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 import bluebird from 'bluebird';
 import inquirer from 'inquirer';
-import { config } from 'dotenv';
 import { getDataBase } from './generator-config';
-config({ path: './env/.code-generator.env.development' }); // 加载指定的 .env 文件
 
 // inquirer.registerPrompt('checkbox-plus', require('inquirer-checkbox-plus-prompt'));
 
@@ -457,7 +455,7 @@ const envConfig = (_env: string): ISequelizeConfig => {
     return getDataBase() as any;
   } catch (error) {
     console.error(
-      chalk.white.bgRed.bold(`Error: `) +
+      chalk.white.bgRed.bold(`Error: ${error}`) +
         `\t [./env/.code-generator.env.development] not find,must have local!`
     );
     process.exit(1);
