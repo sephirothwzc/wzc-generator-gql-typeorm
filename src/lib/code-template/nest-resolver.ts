@@ -128,6 +128,16 @@ export class ${className}Resolver {
   }
 
   @UseGuards(GqlAuthGuard)
+  @Mutation(() => [${className}Object], { description: '根据id批量保存用户' })
+  async save${className}Transaction(
+    @Args('save${className}Input', { type: () => [Save${className}Input] })
+    save${className}Input: Save${className}Input[],
+    @CurrentUser() user: JwtAuthEntity,
+  ) {
+    return this.${camelCase(tableName)}Service.saveTransaction(save${className}Input, user);
+  }
+
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object, { description: '新增用户' })
   async create${className}(@Args('create${className}Input') create${className}Input: Create${className}Input,
   @CurrentUser() user: JwtAuthEntity) {
