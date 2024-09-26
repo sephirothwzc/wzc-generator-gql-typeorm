@@ -70,7 +70,7 @@ export class ${className}Resolver {
 
   // #region find
   @UseGuards(GqlAuthGuard)
-  @Query(() => [${className}Object], { description: '查询用户' })
+  @Query(() => [${className}Object], { description: '查询' })
   async find${className}(
     @Args('queryBuilderOptions') queryBuilderOptions: QueryBuilderOptionsInput<${className}>,
     @CurrentUser() user: JwtAuthEntity
@@ -119,7 +119,7 @@ export class ${className}Resolver {
 
   // #region mutation
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => ${className}Object, { description: '根据id保存用户' })
+  @Mutation(() => ${className}Object, { description: '根据id保存' })
   async save${className}(
     @Args('save${className}Input') save${className}Input: Save${className}Input,
     @CurrentUser() user: JwtAuthEntity,
@@ -128,7 +128,7 @@ export class ${className}Resolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => [${className}Object], { description: '根据id批量保存用户' })
+  @Mutation(() => [${className}Object], { description: '根据id批量保存' })
   async save${className}Transaction(
     @Args('save${className}Input', { type: () => [Save${className}Input] })
     save${className}Input: Save${className}Input[],
@@ -138,7 +138,7 @@ export class ${className}Resolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => ${className}Object, { description: '新增用户' })
+  @Mutation(() => ${className}Object, { description: '新增' })
   async create${className}(@Args('create${className}Input') create${className}Input: Create${className}Input,
   @CurrentUser() user: JwtAuthEntity) {
     return this.${camelCase(tableName)}Service.create(create${className}Input, user);
