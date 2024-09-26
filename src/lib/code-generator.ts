@@ -13,6 +13,9 @@ import fs from 'fs';
 import { promisify } from 'util';
 import bluebird from 'bluebird';
 import inquirer from 'inquirer';
+import { config } from 'dotenv';
+import { getDataBase } from './generator-config';
+config({ path: './env/.code-generator.env.development' }); // 加载指定的 .env 文件
 
 // inquirer.registerPrompt('checkbox-plus', require('inquirer-checkbox-plus-prompt'));
 
@@ -443,17 +446,19 @@ const allFun = {
  * @param env 默认配置
  * @returns
  */
-const envConfig = (env: string): ISequelizeConfig => {
+const envConfig = (_env: string): ISequelizeConfig => {
   // 判断是否midway config存在
-  const configPath = './code-generator/config.json';
-  console.log(chalk.white.red.bold(`===========ENV[${env}]============`));
+  // const configPath = './code-generator/config.json';
+  // console.log(chalk.white.red.bold(`===========ENV[${env}]============`));
   try {
-    const dbConfig = shell.cat(configPath);
-    const result = JSON.parse(dbConfig);
-    return get(result, env, result);
+    // const dbConfig = shell.cat(configPath);
+    // const result = JSON.parse(dbConfig);
+    // return get(result, env, result);
+    return getDataBase() as any;
   } catch (error) {
     console.error(
-      chalk.white.bgRed.bold(`Error: `) + `\t [${configPath}] not find,must have local umzug!`
+      chalk.white.bgRed.bold(`Error: `) +
+        `\t [./env/.code-generator.env.development] not find,must have local!`
     );
     process.exit(1);
   }
