@@ -3,8 +3,11 @@ import { get, mapValues, toUpper } from 'lodash';
 import path from 'path';
 
 import { config } from 'dotenv';
+
+const pathStr = path.join(__dirname, '../../env/.code-generator.env.development');
+console.log(pathStr);
 const configOut = config({
-  path: path.join(__dirname, '../../env/.code-generator.env.development'),
+  path: pathStr,
 }); // 加载指定的 .env 文件
 
 const database = {
