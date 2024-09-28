@@ -4,7 +4,7 @@ import path from 'path';
 
 import { config } from 'dotenv';
 
-const pathStr = path.join(__dirname, '../../env/.code-generator.env.development');
+const pathStr = path.join(process.cwd(), 'env/.code-generator.env.development');
 console.log(pathStr);
 const configOut = config({
   path: pathStr,

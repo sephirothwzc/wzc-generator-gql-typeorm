@@ -1,18 +1,16 @@
 ## 使用
 
-- setting[code-generator/config.json]
+- setting[env/.code-generator.env.development]
 
 ```json
-{
-  "host": "localhost",
-  "dialect": "postgres",
-  "port": 5432,
-  "username": "xxxxxxx",
-  "password": "xxxxxxxx",
-  "database": "xxxxxxx",
-  "schema": "public",
-  "synchronize": false
-}
+HOST=localhost
+DIALECT=postgres
+PORT=5432
+USERNAME=postgres
+PASSWORD=123456
+DATABASE=ecp_dev
+SCHEMA=public
+SYNCHRONIZE=false
 ```
 
 - code
