@@ -209,9 +209,9 @@ import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(p.
 
       return `
   @ResolveField(() => [${pascalCase(p.tableName)}Object], { nullable: true })
-  async ${camelCase(p.tableName)}(@Parent() ${camelCase(p.referencedTableName)}Object: ${pascalCase(
+  async ${camelCase(p.columnName)}${pascalCase(p.tableName)}(@Parent() ${camelCase(
         p.referencedTableName
-      )}Object,
+      )}Object: ${pascalCase(p.referencedTableName)}Object,
       @Info() { info }, // Type of the object that implements Character
       @Args('param', {
         type: () => GraphQLJSON,
