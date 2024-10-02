@@ -45,6 +45,7 @@ const modelTemplate = ({
   if (servicesInject) {
     servicesInject = ', ' + servicesInject;
   }
+  const inputImpport = createRelationTxt ? `CreateRelations${className}Input,` : '';
   return `
 import { Args, Info, Int, Mutation, Query, Resolver${importGqlStr} } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
@@ -56,7 +57,7 @@ import { ${className} } from '../entities/${tableNameToFileName(tableName)}.enti
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { JwtAuthEntity } from '../auth/jwt-auth-entity';
 import { QueryBuilderOptionsInput,  QueryOptionsInput } from '../utils/resolver-input';
-import {
+import { ${inputImpport}
   Create${className}Input,
   Save${className}Input,
   Update${className}Input,
