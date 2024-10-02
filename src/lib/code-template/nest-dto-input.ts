@@ -175,9 +175,9 @@ const modelTemplate = ({
 }) => {
   const gqlTypeString = Array.from(gqlTypeImport).join('');
   return `
-import { Field, InputType, PartialType${gqlTypeString}import { camelCase } from 'lodash';
- } from '@nestjs/graphql';
-
+import { Field, InputType, PartialType${gqlTypeString}} from '@nestjs/graphql';
+${Array.from(importList).join(`;
+`)}
 /**
  * ${tableComment}
  */
