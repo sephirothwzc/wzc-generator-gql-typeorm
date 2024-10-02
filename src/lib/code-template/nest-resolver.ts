@@ -15,6 +15,10 @@ import { pascalCase, tableNameToFileName } from '../utils/helper';
  */
 const graphqlImport = new Set();
 const resolveService = new Set();
+/**
+ * 保存relations
+ */
+const createRelations = new Set();
 
 const modelTemplate = ({
   tableName,
@@ -23,6 +27,7 @@ const modelTemplate = ({
   importStr,
   listOneToMany,
   listManyToOne,
+  createRelationTxt,
 }: {
   tableName: string;
   tableComment: string;
@@ -30,6 +35,7 @@ const modelTemplate = ({
   importStr: string;
   listOneToMany: string;
   listManyToOne: string;
+  createRelationTxt: string;
 }) => {
   let importGqlStr = Array.from(graphqlImport).join(', ');
   if (importGqlStr) {
@@ -143,7 +149,7 @@ export class ${className}Resolver {
   @CurrentUser() user: JwtAuthEntity) {
     return this.${camelCase(tableName)}Service.create(create${className}Input, user);
   }
-
+${createRelationTxt}
   @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object)
   async update${className}(
@@ -207,6 +213,12 @@ import { merge } from 'lodash';
 import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(p.tableName)}.entity';
 `);
 
+      createRelations.add(`    if (input.${camelCase(p.tableName)}) {
+      input.${camelCase(p.tableName)}.forEach((p) => (p.${camelCase(p.columnName)} = result.id));
+      await this.${camelCase(p.tableName)}Service.saveTransaction(input.${camelCase(
+        p.tableName
+      )}, user);
+    }`);
       return `
   @ResolveField(() => [${pascalCase(p.tableName)}Object], { nullable: true })
   async ${camelCase(p.columnName)}${pascalCase(p.tableName)}(@Parent() ${camelCase(
@@ -276,6 +288,7 @@ export const send = ({ tableItem, keyColumnList }: ISend) => {
   resolveService.clear();
   // 获取 主外键的 ResolveField
   const [importStr, listOneToMany, listManyToOne] = findResolveField(tableItem, keyColumnList);
+  const createRelationTxt = findRelation(tableItem);
   return modelTemplate({
     tableName: tableItem.tableName,
     tableComment: tableItem.tableComment,
@@ -283,5 +296,29 @@ export const send = ({ tableItem, keyColumnList }: ISend) => {
     importStr,
     listOneToMany,
     listManyToOne,
+    createRelationTxt,
   });
 };
+
+function findRelation(tableItem: IQueryTableOut) {
+  if (createRelations.size <= 0) {
+    return ``;
+  }
+  return `
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => ${pascalCase(tableItem.tableName)}Object, { description: '新增 主子表批量保存' })
+  async createRelations${pascalCase(tableItem.tableName)}(
+    @Args('createRelations${pascalCase(
+      tableItem.tableName
+    )}Input') input: CreateRelations${pascalCase(tableItem.tableName)}Input,
+    @CurrentUser() user: JwtAuthEntity,
+  ) {
+    const result = await this.${camelCase(tableItem.tableName)}Service.save(input.${camelCase(
+    tableItem.tableName
+  )}, user);
+    ${Array.from(createRelations).join(`
+  `)}
+    return result;
+  }
+`;
+}

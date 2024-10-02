@@ -1,5 +1,6 @@
-import { IQueryColumnOut, ISend } from '../code-generator';
-import { camelCaseNumber, pascalCase } from '../utils/helper';
+import { camelCase } from 'lodash';
+import { IQueryColumnOut, IQueryKeyColumnOut, IQueryTableOut, ISend } from '../code-generator';
+import { camelCaseNumber, pascalCase, tableNameToFileName } from '../utils/helper';
 
 /**
  * 全局引用需要清空
@@ -98,7 +99,11 @@ const findGqlTypeTxt = (p: IQueryColumnOut): string => {
  * @param inputCol
  * @returns
  */
-const findForeignKey = (columnList: IQueryColumnOut[]): string => {
+const findForeignKey = (
+  tableItem: IQueryTableOut,
+  columnList: IQueryColumnOut[],
+  keyColumnList: IQueryKeyColumnOut[]
+): [string, string] => {
   // 当前表格列
   const normalColumns = columnList
     .filter((p) => !notColumn.includes(p.columnName))
@@ -122,23 +127,56 @@ const findForeignKey = (columnList: IQueryColumnOut[]): string => {
     })
     .join('');
 
-  return normalColumns;
+  // 主表 主键 OneToMany
+  const listOneToMany = keyColumnList
+    .filter(
+      (p) => p.tableName !== tableItem.tableName || p.referencedTableName === tableItem.tableName
+    )
+    .map((p) => {
+      importList.add(`
+import { Create${pascalCase(p.tableName)}Input } from 'src/${tableNameToFileName(
+        p.tableName
+      )}/dto/${tableNameToFileName(p.tableName)}.input';`);
+
+      return `
+  @Field(() => [Create${pascalCase(p.tableName)}Input])
+  ${camelCase(p.tableName)}: [Create${pascalCase(p.tableName)}Input];`;
+    });
+
+  let createRelations = '';
+  if (listOneToMany.length > 0) {
+    createRelations = `
+@InputType()
+export class CreateRelations${pascalCase(tableItem.tableName)}Input {
+  @Field(() => Create${pascalCase(tableItem.tableName)}Input)
+  ${camelCase(tableItem.tableName)}: Create${pascalCase(tableItem.tableName)}Input;
+
+${listOneToMany.join(`
+`)}
+}
+    `;
+  }
+
+  return [normalColumns, createRelations];
 };
 
 const modelTemplate = ({
   tableComment,
   className,
   columns,
+  createRelations,
 }: {
   tableName: string;
   tableComment: string;
   className: string;
   columns: string;
+  createRelations: string;
   listCreateColumns: string;
 }) => {
   const gqlTypeString = Array.from(gqlTypeImport).join('');
   return `
-import { Field, InputType, PartialType${gqlTypeString} } from '@nestjs/graphql';
+import { Field, InputType, PartialType${gqlTypeString}import { camelCase } from 'lodash';
+ } from '@nestjs/graphql';
 
 /**
  * ${tableComment}
@@ -163,20 +201,22 @@ export class Save${className}Input extends PartialType(
   @Field(() => String, { nullable: true, description: 'id' })
   id: string;
 }
+${createRelations}
 `;
 };
 
-export const send = ({ columnList, tableItem }: ISend) => {
+export const send = ({ columnList, tableItem, keyColumnList }: ISend) => {
   // 初始化清空
   importList.clear();
   typeormImport.clear();
 
-  const columns = findForeignKey(columnList);
+  const [columns, createRelations] = findForeignKey(tableItem, columnList, keyColumnList);
   return modelTemplate({
     tableName: tableItem.tableName,
     tableComment: tableItem.tableComment,
     className: pascalCase(tableItem.tableName),
     columns,
+    createRelations,
     listCreateColumns: '',
   });
 };
