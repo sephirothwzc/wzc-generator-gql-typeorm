@@ -128,10 +128,26 @@ export class ${className}Resolver {
   @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object, { description: '根据id保存' })
   async save${className}(
-    @Args('save${className}Input') save${className}Input: Save${className}Input,
+    @Args('save${className}Input') input: Save${className}Input,
     @CurrentUser() user: JwtAuthEntity,
   ) {
-    return this.${camelCase(tableName)}Service.save(save${className}Input, user);
+    const result = await this.userService.save(input, user);
+    await this.${camelCase(tableName)}Other(result, input, user);
+    return result;
+  }
+
+    /**
+   * 批量处理
+   * @param result
+   * @param input
+   * @param user
+   */
+  private async saveOther(
+    result: ${className} | Save${className}Input,
+    input: Save${className}Input,
+    user: JwtAuthEntity,
+  ) {
+    ${createRelationTxt}
   }
 
   @UseGuards(GqlAuthGuard)
@@ -214,12 +230,33 @@ import { merge } from 'lodash';
 import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(p.tableName)}.entity';
 `);
 
-      createRelations.add(`    if (input.${camelCase(p.tableName)}) {
-      input.${camelCase(p.tableName)}.forEach((p) => (p.${camelCase(p.columnName)} = result.id));
-      await this.${camelCase(p.tableName)}Service.saveTransaction(input.${camelCase(
-        p.tableName
-      )}, user);
+      createRelations.add(`    if (input.${camelCase(p.tableName)}${pascalCase(p.columnName)}) {
+      // #region ${camelCase(p.tableName)}
+      const allId = await this.${camelCase(p.tableName)}Service.findAll(
+        {
+          ${camelCase(p.columnName)}: { Equal: result.id },
+        },
+        { id: true },
+      );
+      const list = await Bluebird.map(input.${camelCase(p.tableName)}${pascalCase(
+        p.columnName
+      )}, (p) => {
+        p.${camelCase(p.columnName)} = result.id;
+        return this.${camelCase(p.tableName)}Service.save(p, user);
+      });
+      const delIdList = allId
+        .filter((p) => !list.find((x) => x.id === p.id))
+        .map((p) => p.id);
+      if (delIdList.length > 0) {
+        await this.${camelCase(p.tableName)}Service.removeByWhere(
+          'id in (:id)',
+          { id: delIdList },
+          user,
+        );
+      }
+      // #endregion
     }`);
+
       return `
   @ResolveField(() => [${pascalCase(p.tableName)}Object], { nullable: true })
   async ${camelCase(p.columnName)}${pascalCase(p.tableName)}(@Parent() ${camelCase(

@@ -134,30 +134,17 @@ const findForeignKey = (
     )
     .map((p) => {
       importList.add(`
-import { Create${pascalCase(p.tableName)}Input } from 'src/${tableNameToFileName(
+import { Save${pascalCase(p.tableName)}Input } from 'src/${tableNameToFileName(
         p.tableName
       )}/dto/${tableNameToFileName(p.tableName)}.input';`);
 
       return `
-  @Field(() => [Create${pascalCase(p.tableName)}Input])
-  ${camelCase(p.tableName)}: [Create${pascalCase(p.tableName)}Input];`;
-    });
+  @Field(() => [Save${pascalCase(p.tableName)}Input])
+  ${camelCase(p.tableName)}${pascalCase(p.columnName)}: [Save${pascalCase(p.tableName)}Input];`;
+    }).join(`
+      `);
 
-  let createRelations = '';
-  if (listOneToMany.length > 0) {
-    createRelations = `
-@InputType()
-export class CreateRelations${pascalCase(tableItem.tableName)}Input {
-  @Field(() => Create${pascalCase(tableItem.tableName)}Input)
-  ${camelCase(tableItem.tableName)}: Create${pascalCase(tableItem.tableName)}Input;
-
-${listOneToMany.join(`
-`)}
-}
-    `;
-  }
-
-  return [normalColumns, createRelations];
+  return [normalColumns, listOneToMany];
 };
 
 const modelTemplate = ({
@@ -199,9 +186,8 @@ export class Save${className}Input extends PartialType(
   Create${className}Input,
 ) {
   @Field(() => String, { nullable: true, description: 'id' })
-  id: string;
+  id: string;${createRelations}
 }
-${createRelations}
 `;
 };
 
