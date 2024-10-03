@@ -139,7 +139,7 @@ import { Save${pascalCase(p.tableName)}Input } from 'src/${tableNameToFileName(
       )}/dto/${tableNameToFileName(p.tableName)}.input';`);
 
       return `
-  @Field(() => [Save${pascalCase(p.tableName)}Input])
+  @Field(() => [Save${pascalCase(p.tableName)}Input], { nullable: true})
   ${camelCase(p.tableName)}${pascalCase(p.columnName)}: [Save${pascalCase(p.tableName)}Input];`;
     }).join(`
       `);

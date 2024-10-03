@@ -63,7 +63,7 @@ import {
 } from './dto/${tableNameToFileName(tableName)}.input';
 import { ${className}Object } from './model/${tableNameToFileName(tableName)}.object';
 import { ${className}Service } from './${tableNameToFileName(tableName)}.service';
-import Bluebird from 'bluebird';
+import * as Bluebird from 'bluebird';
 ${importStr}
 
 /**
@@ -245,12 +245,12 @@ import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(p.
 
       createRelations.add(`    if (input.${camelCase(p.tableName)}${pascalCase(p.columnName)}) {
       // #region ${camelCase(p.tableName)}
-      const allId = await this.${camelCase(p.tableName)}Service.findAll(
-        {
-          ${camelCase(p.columnName)}: { Equal: result.id },
+      const allId = await this.${camelCase(p.tableName)}Service.findEntity({
+        where: {
+          ${camelCase(p.columnName)}: result.id,
         },
-        { id: true },
-      );
+        select: { id: true },
+      });
       const list = await Bluebird.map(input.${camelCase(p.tableName)}${pascalCase(
         p.columnName
       )}, (p) => {
