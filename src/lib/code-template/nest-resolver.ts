@@ -339,7 +339,7 @@ export const send = ({ tableItem, keyColumnList }: ISend) => {
   resolveService.clear();
   // 获取 主外键的 ResolveField
   const [importStr, listOneToMany, listManyToOne] = findResolveField(tableItem, keyColumnList);
-  const createRelationTxt = findRelation(tableItem);
+  const createRelationTxt = findRelation();
   return modelTemplate({
     tableName: tableItem.tableName,
     tableComment: tableItem.tableComment,
@@ -351,20 +351,10 @@ export const send = ({ tableItem, keyColumnList }: ISend) => {
   });
 };
 
-function findRelation(tableItem: IQueryTableOut) {
+function findRelation() {
   if (createRelations.size <= 0) {
     return ``;
   }
-  return `
-  
-  /**
-   * 
-   */
-  async saveOther(input: ${pascalCase(tableItem.tableName)}| Save${pascalCase(
-    tableItem.tableName
-  )}Input ,result: ${pascalCase(tableItem.tableName)},user: JwtAuthEntity) {
-    ${Array.from(createRelations).join(`
-  `)}
-  }
-`;
+  return Array.from(createRelations).join(`
+  `);
 }
