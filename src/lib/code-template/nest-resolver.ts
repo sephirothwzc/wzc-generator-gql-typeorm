@@ -147,7 +147,7 @@ export class ${className}Resolver {
     input: Save${className}Input,
     user: JwtAuthEntity,
   ) {
-    ${createRelationTxt}
+${createRelationTxt}
   }
 
   @UseGuards(GqlAuthGuard)
@@ -166,7 +166,7 @@ export class ${className}Resolver {
   @CurrentUser() user: JwtAuthEntity) {
     return this.${camelCase(tableName)}Service.create(create${className}Input, user);
   }
-${createRelationTxt}
+
   @UseGuards(GqlAuthGuard)
   @Mutation(() => ${className}Object)
   async update${className}(
