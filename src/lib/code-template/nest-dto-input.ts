@@ -195,6 +195,7 @@ export const send = ({ columnList, tableItem, keyColumnList }: ISend) => {
   // 初始化清空
   importList.clear();
   typeormImport.clear();
+  gqlTypeImport.clear();
 
   const [columns, createRelations] = findForeignKey(tableItem, columnList, keyColumnList);
   return modelTemplate({

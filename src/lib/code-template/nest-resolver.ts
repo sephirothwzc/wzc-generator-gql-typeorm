@@ -337,6 +337,7 @@ import { ${pascalCase(p.referencedTableName)}Object } from '../${tableNameToFile
 export const send = ({ tableItem, keyColumnList }: ISend) => {
   graphqlImport.clear();
   resolveService.clear();
+  createRelations.clear();
   // 获取 主外键的 ResolveField
   const [importStr, listOneToMany, listManyToOne] = findResolveField(tableItem, keyColumnList);
   const createRelationTxt = findRelation();
