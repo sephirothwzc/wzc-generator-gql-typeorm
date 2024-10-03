@@ -45,7 +45,6 @@ const modelTemplate = ({
   if (servicesInject) {
     servicesInject = ', ' + servicesInject;
   }
-  const inputImpport = createRelationTxt ? `CreateRelations${className}Input,` : '';
   return `
 import { Args, Info, Int, Mutation, Query, Resolver${importGqlStr} } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
@@ -57,13 +56,14 @@ import { ${className} } from '../entities/${tableNameToFileName(tableName)}.enti
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { JwtAuthEntity } from '../auth/jwt-auth-entity';
 import { QueryBuilderOptionsInput,  QueryOptionsInput } from '../utils/resolver-input';
-import { ${inputImpport}
+import {
   Create${className}Input,
   Save${className}Input,
   Update${className}Input,
 } from './dto/${tableNameToFileName(tableName)}.input';
 import { ${className}Object } from './model/${tableNameToFileName(tableName)}.object';
 import { ${className}Service } from './${tableNameToFileName(tableName)}.service';
+import Bluebird from 'bluebird';
 ${importStr}
 
 /**
@@ -131,12 +131,12 @@ export class ${className}Resolver {
     @Args('save${className}Input') input: Save${className}Input,
     @CurrentUser() user: JwtAuthEntity,
   ) {
-    const result = await this.userService.save(input, user);
-    await this.${camelCase(tableName)}Other(result, input, user);
+    const result = await this.${camelCase(tableName)}Service.save(input, user);
+    await this.saveOther(result, input, user);
     return result;
   }
 
-    /**
+  /**
    * 批量处理
    * @param result
    * @param input
@@ -356,20 +356,15 @@ function findRelation(tableItem: IQueryTableOut) {
     return ``;
   }
   return `
-  @UseGuards(GqlAuthGuard)
-  @Mutation(() => ${pascalCase(tableItem.tableName)}Object, { description: '新增 主子表批量保存' })
-  async createRelations${pascalCase(tableItem.tableName)}(
-    @Args('createRelations${pascalCase(
-      tableItem.tableName
-    )}Input') input: CreateRelations${pascalCase(tableItem.tableName)}Input,
-    @CurrentUser() user: JwtAuthEntity,
-  ) {
-    const result = await this.${camelCase(tableItem.tableName)}Service.save(input.${camelCase(
+  
+  /**
+   * 
+   */
+  async saveOther(input: ${pascalCase(tableItem.tableName)}| Save${pascalCase(
     tableItem.tableName
-  )}, user);
+  )}Input ,result: ${pascalCase(tableItem.tableName)},user: JwtAuthEntity) {
     ${Array.from(createRelations).join(`
   `)}
-    return result;
   }
 `;
 }
