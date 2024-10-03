@@ -184,6 +184,19 @@ ${createRelationTxt}
     @CurrentUser() user: JwtAuthEntity) {
     return this.${camelCase(tableName)}Service.remove(id, user);
   }
+
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Int)
+  async remove${className}Array(
+    @Args('idArray', { type: () => [String] }) id: [string],
+    @CurrentUser() user: JwtAuthEntity,
+  ) {
+    if ((id?.length || 0) <= 0) {
+      return 0;
+    }
+    return this.${camelCase(tableName)}Service.removeByWhere('id in (:id)', { id }, user);
+  }
   // #endregion
 
   // #region ResolveField
