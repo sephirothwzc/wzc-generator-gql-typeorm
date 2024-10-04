@@ -243,7 +243,7 @@ import { merge } from 'lodash';
 import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(p.tableName)}.entity';
 `);
 
-      createRelations.add(`    if (input.${camelCase(p.tableName)}${pascalCase(p.columnName)}) {
+      createRelations.add(`    if (input.${camelCase(p.columnName)}${pascalCase(p.tableName)}) {
       // #region ${camelCase(p.tableName)}
       const allId = await this.${camelCase(p.tableName)}Service.findEntity({
         where: {
@@ -251,8 +251,8 @@ import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(p.
         },
         select: { id: true },
       });
-      const list = await Bluebird.map(input.${camelCase(p.tableName)}${pascalCase(
-        p.columnName
+      const list = await Bluebird.map(input.${camelCase(p.columnName)}${pascalCase(
+        p.tableName
       )}, (p) => {
         p.${camelCase(p.columnName)} = result.id;
         return this.${camelCase(p.tableName)}Service.save(p, user);
