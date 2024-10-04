@@ -148,7 +148,7 @@ import { ${pascalCase(p.referencedTableName)} } from './${tableNameToFileName(
     onUpdate: '${p.updaterule}',
   })
   @JoinColumn([{ name: '${p.columnName}', referencedColumnName: '${p.referencedColumnName}' }])
-  ${camelCase(p.referencedColumnName)}${pascalCase(p.referencedTableName)}: ${pascalCase(
+  ${camelCase(p.columnName)}${pascalCase(p.referencedTableName)}: ${pascalCase(
         p.referencedTableName
       )};`;
     })
