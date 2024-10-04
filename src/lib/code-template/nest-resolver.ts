@@ -317,9 +317,9 @@ import { ${pascalCase(p.referencedTableName)}Object } from '../${tableNameToFile
       );
       return `
   @ResolveField(() => ${pascalCase(p.referencedTableName)}Object, { nullable: true })
-  async ${camelCase(p.referencedTableName)}(@Parent() ${camelCase(p.tableName)}Object: ${pascalCase(
-        p.tableName
-      )}Object) {
+  async ${camelCase(p.referencedColumnName)}${pascalCase(
+        p.referencedTableName
+      )}(@Parent() ${camelCase(p.tableName)}Object: ${pascalCase(p.tableName)}Object) {
     const { ${camelCase(p.columnName)} } = ${camelCase(p.tableName)}Object;
     if(!${camelCase(p.columnName)}){
       return undefined;  

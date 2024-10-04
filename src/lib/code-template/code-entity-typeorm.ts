@@ -118,8 +118,8 @@ import { ${pascalCase(p.tableName)} } from './${tableNameToFileName(p.tableName)
    */
   @OneToMany(() => ${pascalCase(p.tableName)}, (${camelCase(p.tableName)}) => ${camelCase(
         p.tableName
-      )}.${camelCase(p.referencedTableName)})
-  ${camelCase(p.tableName)}: Array<${pascalCase(p.tableName)}>;`;
+      )}.${camelCase(p.referencedColumnName)}${pascalCase(p.referencedTableName)})
+  ${camelCase(p.columnName)}${pascalCase(p.tableName)}: Array<${pascalCase(p.tableName)}>;`;
     })
     .join(``);
 
@@ -141,12 +141,16 @@ import { ${pascalCase(p.referencedTableName)} } from './${tableNameToFileName(
    */
     @ManyToOne(() => ${pascalCase(p.referencedTableName)}, (${camelCase(
         p.referencedTableName
-      )}) => ${camelCase(p.referencedTableName)}.${camelCase(p.tableName)}, {
+      )}) => ${camelCase(p.referencedTableName)}.${camelCase(p.columnName)}${pascalCase(
+        p.tableName
+      )}, {
     onDelete: '${p.deleterule}',
     onUpdate: '${p.updaterule}',
   })
   @JoinColumn([{ name: '${p.columnName}', referencedColumnName: '${p.referencedColumnName}' }])
-  ${camelCase(p.referencedTableName)}: ${pascalCase(p.referencedTableName)};`;
+  ${camelCase(p.referencedColumnName)}${pascalCase(p.referencedTableName)}: ${pascalCase(
+        p.referencedTableName
+      )};`;
     })
     .join(``);
 
