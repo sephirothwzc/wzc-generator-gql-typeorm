@@ -195,7 +195,7 @@ ${createRelationTxt}
     if ((id?.length || 0) <= 0) {
       return 0;
     }
-    return this.${camelCase(tableName)}Service.removeByWhere('id in (:id)', { id }, user);
+    return this.${camelCase(tableName)}Service.removeByWhere('id in (:...id)', { id }, user);
   }
   // #endregion
 
@@ -262,7 +262,7 @@ import { ${pascalCase(p.tableName)} } from '../entities/${tableNameToFileName(p.
         .map((p) => p.id);
       if (delIdList.length > 0) {
         await this.${camelCase(p.tableName)}Service.removeByWhere(
-          'id in (:id)',
+          'id in (:...id)',
           { id: delIdList },
           user,
         );
