@@ -89,13 +89,12 @@ const findForeignKey = (
       }
       // 增加非空判断
       let notNull = p.isNullable !== 'NO' ? 'false' : 'true';
-
+      let typeStr = p.dataType === 'jsonb' ? `json: 'jsonb',` : '';
       return `
   /**
    * ${comment}
    */
-  @Column({
-      type: '${p.columnType}',
+  @Column({${typeStr}
       name: '${p.columnName}',
       nullable: ${notNull},
       comment: '${comment}',${maxValid}
