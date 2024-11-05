@@ -95,7 +95,7 @@ const findForeignKey = (
    * ${comment}
    */
   @Column({
-      type: '${p.dataType}',
+      type: '${p.columnType}',
       name: '${p.columnName}',
       nullable: ${notNull},
       comment: '${comment}',${maxValid}
