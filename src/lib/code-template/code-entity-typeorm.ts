@@ -89,7 +89,7 @@ const findForeignKey = (
       }
       // 增加非空判断
       let notNull = p.isNullable !== 'NO' ? 'false' : 'true';
-      let typeStr = p.dataType === 'jsonb' ? `json: 'jsonb',` : '';
+      let typeStr = p.dataType === 'jsonb' ? `type: 'jsonb',` : '';
       return `
   /**
    * ${comment}
