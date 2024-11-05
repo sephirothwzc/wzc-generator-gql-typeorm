@@ -53,6 +53,7 @@ const findTypeTxt = (p: IQueryColumnOut): string => {
     case 'tinyint':
       return 'boolean';
     case 'json':
+    case 'jsonb':
       return 'Object';
     default:
       return 'string';
@@ -94,6 +95,7 @@ const findForeignKey = (
    * ${comment}
    */
   @Column({
+      type: '${p.dataType}',
       name: '${p.columnName}',
       nullable: ${notNull},
       comment: '${comment}',${maxValid}
