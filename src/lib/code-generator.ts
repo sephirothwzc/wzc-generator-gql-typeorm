@@ -760,30 +760,35 @@ const queryKeyColumn = async (
 ): Promise<Array<IQueryKeyColumnOut>> => {
   let sql = '';
   if (config.dialect === 'mysql') {
-    sql = `SELECT DISTINCT C.TABLE_SCHEMA as tableSchema,
-               C.REFERENCED_TABLE_NAME as referencedTableName,
-               C.REFERENCED_COLUMN_NAME as referencedColumnName,
-               C.TABLE_NAME as tableName,
-               C.COLUMN_NAME as columnName,
-               C.CONSTRAINT_NAME as constraintName,
-               T.TABLE_COMMENT as tableComment,
-    					 refT.TABLE_COMMENT as refTableComment,
-               R.UPDATE_RULE as updateRule,
-               R.DELETE_RULE as deleteRule
-          FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE C
-          JOIN INFORMATION_SCHEMA. TABLES T
-            ON T.TABLE_NAME = C.TABLE_NAME
-          JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS R
-            ON R.TABLE_NAME = C.TABLE_NAME
-           AND R.CONSTRAINT_NAME = C.CONSTRAINT_NAME
-           AND R.REFERENCED_TABLE_NAME = C.REFERENCED_TABLE_NAME
-    			join INFORMATION_SCHEMA. TABLES refT
-    				on reft.TABLE_NAME = C.REFERENCED_TABLE_NAME
-          WHERE C.REFERENCED_TABLE_NAME IS NOT NULL
-    				AND (C.REFERENCED_TABLE_NAME = :tableName or C.TABLE_NAME = :tableName)
-            AND C.TABLE_SCHEMA = :schema
-            -- group by C.CONSTRAINT_NAME
-            order by C.CONSTRAINT_NAME`;
+    sql = `SELECT DISTINCT
+    C.TABLE_SCHEMA AS tableSchema,
+    C.REFERENCED_TABLE_NAME AS referencedTableName,
+    C.REFERENCED_COLUMN_NAME AS referencedColumnName,
+    C.TABLE_NAME AS tableName,
+    C.COLUMN_NAME AS columnName,
+    C.CONSTRAINT_NAME AS constraintName,
+    T.TABLE_COMMENT AS tableComment,
+    refT.TABLE_COMMENT AS refTableComment,
+    R.UPDATE_RULE AS updateRule,
+    R.DELETE_RULE AS deleteRule
+FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE C
+JOIN INFORMATION_SCHEMA.TABLES T
+    ON T.TABLE_SCHEMA = C.TABLE_SCHEMA
+   AND T.TABLE_NAME = C.TABLE_NAME
+JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS R
+    ON R.CONSTRAINT_NAME = C.CONSTRAINT_NAME
+   AND R.CONSTRAINT_SCHEMA = C.TABLE_SCHEMA
+JOIN INFORMATION_SCHEMA.TABLES refT
+    ON refT.TABLE_SCHEMA = C.TABLE_SCHEMA
+   AND refT.TABLE_NAME = C.REFERENCED_TABLE_NAME
+WHERE C.REFERENCED_TABLE_NAME IS NOT NULL
+  AND (
+    C.REFERENCED_TABLE_NAME = :tableName
+    OR C.TABLE_NAME = :tableName
+  )
+  AND C.TABLE_SCHEMA = :schema
+ORDER BY C.CONSTRAINT_NAME;
+`;
   } else {
     sql = `SELECT DISTINCT
     kcu.constraint_schema AS "tableSchema",
