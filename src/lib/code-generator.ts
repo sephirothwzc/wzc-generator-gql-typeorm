@@ -486,7 +486,10 @@ const confirmDBConfig = async (database: string) => {
  */
 const queryTable = async (config: ISequelizeConfig) => {
   const sequelize = getConn(config);
-  const sql = `
+  let sql = '';
+  let result: IQueryTableOut[] | undefined;
+  if (config.dialect === 'postgres') {
+    sql = `
   -- pgsql
   SELECT 
     t.table_name AS "tableName",
@@ -497,19 +500,28 @@ WHERE t.table_name <> 'sequelizemeta' and t.table_name <> 'migrations'
   AND t.table_schema = :schema
 ORDER BY t.table_name;
   `;
-  // const sql = `
-  // -- mysql
-  // select table_name AS tableName,table_comment AS tableComment,table_type AS tableType
-  //    from information_schema.tables where table_name <> 'sequelizemeta'
-  //    and table_schema=:database order by table_name
-  // `;
-  const result = await sequelize.query<IQueryTableOut>(sql, {
-    replacements: {
-      schema: config.schema,
-    },
-    type: QueryTypes.SELECT,
-  });
-  const tableList = result.map((p) => ({
+    result = await sequelize.query<IQueryTableOut>(sql, {
+      replacements: {
+        schema: config.schema,
+      },
+      type: QueryTypes.SELECT,
+    });
+  } else if (config.dialect === 'mysql') {
+    sql = `
+  -- mysql
+  select table_name AS tableName,table_comment AS tableComment,table_type AS tableType
+     from information_schema.tables where table_name <> 'sequelizemeta'
+     and table_schema=:database order by table_name
+  `;
+    result = await sequelize.query<IQueryTableOut>(sql, {
+      replacements: {
+        database: config.database,
+      },
+      type: QueryTypes.SELECT,
+    });
+  }
+
+  const tableList = result?.map((p) => ({
     name: `${p.tableName}--${p.tableComment}`,
     value: p,
   }));
@@ -615,7 +627,7 @@ export const init = async (config: InitInProp) => {
   await confirmDBConfig(db?.database);
   const tableList = await queryTable(db);
   // 选择导出表格
-  const tables: any = await askListQuestions(tableList, 'tableName', 'checkbox');
+  const tables: any = await askListQuestions(tableList as any, 'tableName', 'checkbox');
   // 选择导出对象
   const types: any = await askListQuestions(codeTypeArray, 'fileType', 'checkbox');
 
@@ -649,16 +661,19 @@ const queryColumn = async (
   config: ISequelizeConfig,
   name: string
 ): Promise<Array<IQueryColumnOut>> => {
-  //   const sql = `
-  // -- mysql
-  // SELECT table_name as tableName,column_name as columnName,
-  // COLUMN_COMMENT as columnComment,column_type as columnType,
-  // DATA_TYPE as dataType, CHARACTER_MAXIMUM_LENGTH as characterMaximumLength,
-  // is_Nullable as isNullable
-  //  FROM information_schema.columns
-  //   WHERE table_schema=:database AND table_name=:name
-  //   order by COLUMN_NAME`;
-  const sql = `
+  let sql = '';
+  if (config.dialect === 'mysql') {
+    sql = `
+    -- mysql
+    SELECT table_name as tableName,column_name as columnName,
+    COLUMN_COMMENT as columnComment,column_type as columnType,
+    DATA_TYPE as dataType, CHARACTER_MAXIMUM_LENGTH as characterMaximumLength,
+    is_Nullable as isNullable
+     FROM information_schema.columns
+      WHERE table_schema=:schema AND table_name=:name
+      order by COLUMN_NAME`;
+  } else {
+    sql = `
   -- pgsql
   SELECT 
     c.table_name AS "tableName",
@@ -673,11 +688,12 @@ WHERE c.table_schema = :schema
   AND c.table_name = :name
 ORDER BY c.column_name;
   `;
+  }
   const sequelize = getConn(config);
 
   const result = await sequelize.query<IQueryColumnOut>(sql, {
     replacements: {
-      schema: config.schema,
+      schema: config.dialect === 'mysql' ? config.database : config.schema,
       name,
     },
     type: QueryTypes.SELECT,
@@ -742,7 +758,34 @@ const queryKeyColumn = async (
   config: ISequelizeConfig,
   name: string
 ): Promise<Array<IQueryKeyColumnOut>> => {
-  const sql = `SELECT DISTINCT
+  let sql = '';
+  if (config.dialect === 'mysql') {
+    sql = `SELECT DISTINCT C.TABLE_SCHEMA as tableSchema,
+               C.REFERENCED_TABLE_NAME as referencedTableName,
+               C.REFERENCED_COLUMN_NAME as referencedColumnName,
+               C.TABLE_NAME as tableName,
+               C.COLUMN_NAME as columnName,
+               C.CONSTRAINT_NAME as constraintName,
+               T.TABLE_COMMENT as tableComment,
+    					 refT.TABLE_COMMENT as refTableComment,
+               R.UPDATE_RULE as updateRule,
+               R.DELETE_RULE as deleteRule
+          FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE C
+          JOIN INFORMATION_SCHEMA. TABLES T
+            ON T.TABLE_NAME = C.TABLE_NAME
+          JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS R
+            ON R.TABLE_NAME = C.TABLE_NAME
+           AND R.CONSTRAINT_NAME = C.CONSTRAINT_NAME
+           AND R.REFERENCED_TABLE_NAME = C.REFERENCED_TABLE_NAME
+    			join INFORMATION_SCHEMA. TABLES refT
+    				on reft.TABLE_NAME = C.REFERENCED_TABLE_NAME
+          WHERE C.REFERENCED_TABLE_NAME IS NOT NULL
+    				AND (C.REFERENCED_TABLE_NAME = :tableName or C.TABLE_NAME = :tableName)
+            AND C.TABLE_SCHEMA = :schema
+            -- group by C.CONSTRAINT_NAME
+            order by C.CONSTRAINT_NAME`;
+  } else {
+    sql = `SELECT DISTINCT
     kcu.constraint_schema AS "tableSchema",
     kcu.table_name AS "tableName",
     kcu.column_name AS "columnName",
@@ -770,10 +813,12 @@ WHERE kcu.constraint_schema = :schema
   AND (ccu.table_name = :tableName OR kcu.table_name = :tableName)
 ORDER BY kcu.constraint_name;
 `;
+  }
+
   const sequelize = getConn(config);
   const result = await sequelize.query<IQueryKeyColumnOut>(sql, {
     replacements: {
-      schema: config.schema,
+      schema: config.dialect === 'mysql' ? config.database : config.schema,
       tableName: name,
     },
     type: QueryTypes.SELECT,
