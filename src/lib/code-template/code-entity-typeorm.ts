@@ -1,7 +1,9 @@
 import { camelCase } from 'lodash';
 import { IQueryColumnOut, IQueryKeyColumnOut, IQueryTableOut, ISend } from '../code-generator';
 import { camelCaseNumber, pascalCase, tableNameToFileName } from '../utils/helper';
+import { getDataBase } from '../generator-config';
 
+const dbConfig = getDataBase();
 /**
  * 全局引用需要清空
  */
@@ -54,6 +56,9 @@ const findTypeTxt = (p: IQueryColumnOut): string => {
       return 'boolean';
     case 'json':
     case 'jsonb':
+      if (dbConfig.dialect === 'mysql') {
+        return 'Record<string, any>';
+      }
       return 'Object';
     default:
       return 'string';
@@ -89,7 +94,10 @@ const findForeignKey = (
       }
       // 增加非空判断
       let notNull = p.isNullable !== 'NO' ? 'false' : 'true';
-      let typeStr = p.dataType === 'jsonb' ? `type: 'jsonb',` : '';
+      let typeStr = '';
+      if (p.dataType === 'json' || p.dataType === 'jsonb') {
+        typeStr = `type: 'json',`;
+      }
       return `
   /**
    * ${comment}
@@ -135,23 +143,39 @@ import { ${pascalCase(p.referencedTableName)} } from './${tableNameToFileName(
         p.referencedTableName
       )}.entity';`);
       typeormImport.add(`, JoinColumn, ManyToOne`);
-
-      return `
+      if (dbConfig.dialect === 'mysql') {
+        return `
   /**
    * ${pascalCase(p.columnName)}-${p.reftablecomment}
    */
     @ManyToOne(() => ${pascalCase(p.referencedTableName)}, (${camelCase(
-        p.referencedTableName
-      )}) => ${camelCase(p.referencedTableName)}.${camelCase(p.columnName)}${pascalCase(
-        p.tableName
-      )}, {
+          p.referencedTableName
+        )}) => ${camelCase(p.referencedTableName)}.${camelCase(p.columnName)}${pascalCase(
+          p.tableName
+        )})
+  @JoinColumn([{ name: '${p.columnName}', referencedColumnName: '${p.referencedColumnName}' }])
+  ${camelCase(p.columnName)}${pascalCase(p.referencedTableName)}: ${pascalCase(
+          p.referencedTableName
+        )};`;
+      } else if (dbConfig.dialect === 'postgres') {
+        return `
+  /**
+   * ${pascalCase(p.columnName)}-${p.reftablecomment}
+   */
+    @ManyToOne(() => ${pascalCase(p.referencedTableName)}, (${camelCase(
+          p.referencedTableName
+        )}) => ${camelCase(p.referencedTableName)}.${camelCase(p.columnName)}${pascalCase(
+          p.tableName
+        )}, {
     onDelete: '${p.deleterule}',
     onUpdate: '${p.updaterule}',
   })
   @JoinColumn([{ name: '${p.columnName}', referencedColumnName: '${p.referencedColumnName}' }])
   ${camelCase(p.columnName)}${pascalCase(p.referencedTableName)}: ${pascalCase(
-        p.referencedTableName
-      )};`;
+          p.referencedTableName
+        )};`;
+      }
+      return undefined;
     })
     .join(``);
 

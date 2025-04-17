@@ -165,7 +165,7 @@ const allFun = {
     /**
      * 路径
      */
-    path: `./src/entities`,
+    path: `./src/typeorm/entities`,
     /**
      * 前缀
      */
