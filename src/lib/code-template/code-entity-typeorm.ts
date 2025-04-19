@@ -93,7 +93,7 @@ const findForeignKey = (
         length:${p.characterMaximumLength || 50},`;
       }
       // 增加非空判断
-      let notNull = p.isNullable !== 'NO' ? 'false' : 'true';
+      let notNull = p.isNullable !== 'NO' ? 'true' : 'false';
       let typeStr = '';
       if (p.dataType === 'json' || p.dataType === 'jsonb') {
         typeStr = `type: 'json',`;
@@ -107,7 +107,7 @@ const findForeignKey = (
       nullable: ${notNull},
       comment: '${comment}',${maxValid}
     })
-  ${propertyName}: ${modelPropertyType};`;
+  ${propertyName}${notNull === 'true' ? '?' : ''}: ${modelPropertyType};`;
     })
     .join('');
 
@@ -128,7 +128,7 @@ import { ${pascalCase(p.tableName)} } from './${tableNameToFileName(p.tableName)
   @OneToMany(() => ${pascalCase(p.tableName)}, (${camelCase(p.tableName)}) => ${camelCase(
         p.tableName
       )}.${camelCase(p.columnName)}${pascalCase(p.referencedTableName)})
-  ${camelCase(p.columnName)}${pascalCase(p.tableName)}: Array<${pascalCase(p.tableName)}>;`;
+  ${camelCase(p.columnName)}${pascalCase(p.tableName)}?: Array<${pascalCase(p.tableName)}>;`;
     })
     .join(``);
 
@@ -154,7 +154,7 @@ import { ${pascalCase(p.referencedTableName)} } from './${tableNameToFileName(
           p.tableName
         )})
   @JoinColumn([{ name: '${p.columnName}', referencedColumnName: '${p.referencedColumnName}' }])
-  ${camelCase(p.columnName)}${pascalCase(p.referencedTableName)}: ${pascalCase(
+  ${camelCase(p.columnName)}${pascalCase(p.referencedTableName)}?: ${pascalCase(
           p.referencedTableName
         )};`;
       } else if (dbConfig.dialect === 'postgres') {
@@ -171,7 +171,7 @@ import { ${pascalCase(p.referencedTableName)} } from './${tableNameToFileName(
     onUpdate: '${p.updaterule}',
   })
   @JoinColumn([{ name: '${p.columnName}', referencedColumnName: '${p.referencedColumnName}' }])
-  ${camelCase(p.columnName)}${pascalCase(p.referencedTableName)}: ${pascalCase(
+  ${camelCase(p.columnName)}${pascalCase(p.referencedTableName)}?: ${pascalCase(
           p.referencedTableName
         )};`;
       }
